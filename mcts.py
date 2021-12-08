@@ -8,12 +8,13 @@ import os.path
 import random
 
 class ALENode:
+    __slots__ = ("ram", "parent", "_evaluation", "action", "_is_terminal")
     def __init__(self, ram, parent, score, action, is_terminal):
         self.ram = ram
         self.parent = parent
-        self.evaluation = score
+        self._evaluation = score
         self.action = action
-        self.is_terminal = is_terminal
+        self._is_terminal = is_terminal
 
 
     @classmethod
@@ -31,18 +32,16 @@ class ALENode:
         score = 0
         action = 0 # attribute start of game to NOOP
         is_terminal = cls.interface.game_over()
-
         return cls(ram, parent, score, action, is_terminal)
 
     @classmethod 
     def from_parent(cls, parent, action):
         parent.sync()
         inc_reward = cls.interface.act(action)
-
         new_ram = cls.interface.getRAM()
         is_terminal = cls.interface.game_over()
 
-        return cls(new_ram, parent, parent.evaluation + inc_reward, action, is_terminal)
+        return cls(new_ram, parent, parent._evaluation + inc_reward, action, is_terminal)
 
     def sync(self):
         for i, b in enumerate(self.ram):
@@ -51,10 +50,17 @@ class ALENode:
     def find_children(self):
         actions = self.interface.getMinimalActionSet()
 
-        return [ALENode.from_parent(self, a) for a in actions]
+        return [ALENode.from_parent(self, int(a)) for a in actions]
+
+    def is_terminal(self):
+        return self._is_terminal
+
+    def evaluation(self):
+        return self._evaluation
 
     def random_child(self):
-        return random.choice(self.find_children())
+        action = random.choice(self.interface.getMinimalActionSet())
+        return ALENode.from_parent(self, int(action))
 
     def get_history(self):
         history = []
@@ -74,8 +80,8 @@ class ALENode:
             fname = f"frame_{i}.png"
             self.interface.saveScreenPNG(f"{os.path.join(png_dir, fname)}")
 
-        os.system(f"ffmpeg -framerate 60 -start_number 0 -i {png_dir}/frame_%d.png -pix_fmt yuv420p {video_path}")
-        # os.system(f"rm -rf {png_dir}")
+        os.system(f"ffmpeg -framerate 30 -start_number 0 -i {png_dir}/frame_%d.png -pix_fmt yuv420p {video_path}")
+        os.system(f"rm -rf {png_dir}/*")
 
     def __hash__(self):
         return hash(self.ram.tobytes())
@@ -84,7 +90,7 @@ class ALENode:
         return np.array_equal(self.ram, other.ram)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}<{self.evaluation=}, {self.action=}>"
+        return f"{self.__class__.__name__}<{self._evaluation=}, {self.action=}>"
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Run MCTS on ALE")
@@ -112,7 +118,6 @@ if __name__ == "__main__":
 
     for i in tqdm(range(args.turn_limit)):
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
-    print(node)
     node.make_video(args.png_dir, args.video_path)
 
 
