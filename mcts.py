@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     ALENode.setup_interface(args.rom_path, args.frame_skip)
 
-    mcts = MCTS(ALENode.root(), hashable=True)
+    mcts = MCTS(ALENode.root(), structure="tree", iter_stop="cpu_time")
 
     for i in tqdm(range(args.turn_limit)):
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
