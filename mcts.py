@@ -119,5 +119,5 @@ if __name__ == "__main__":
     for i in tqdm(range(args.turn_limit)):
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
     node.make_video(args.png_dir, args.video_path)
-
+    print(node.evaluation())
 
