@@ -8,9 +8,9 @@ import os.path
 import random
 
 class ALENode:
-    __slots__ = ("ram", "parent", "_evaluation", "action", "_is_terminal")
-    def __init__(self, ram, parent, score, action, is_terminal):
-        self.ram = ram
+    __slots__ = ("state", "parent", "_evaluation", "action", "_is_terminal")
+    def __init__(self, state, parent, score, action, is_terminal):
+        self.state = state
         self.parent = parent
         self._evaluation = score
         self.action = action
@@ -27,25 +27,24 @@ class ALENode:
 
     @classmethod
     def root(cls):
-        ram = cls.interface.getRAM()
+        state = cls.interface.cloneState()
         parent = None
         score = 0
         action = 0 # attribute start of game to NOOP
         is_terminal = cls.interface.game_over()
-        return cls(ram, parent, score, action, is_terminal)
+        return cls(state, parent, score, action, is_terminal)
 
     @classmethod 
     def from_parent(cls, parent, action):
         parent.sync()
         inc_reward = cls.interface.act(action)
-        new_ram = cls.interface.getRAM()
+        new_state = cls.interface.cloneState()
         is_terminal = cls.interface.game_over()
 
-        return cls(new_ram, parent, parent._evaluation + inc_reward, action, is_terminal)
+        return cls(new_state, parent, parent._evaluation + inc_reward, action, is_terminal)
 
     def sync(self):
-        for i, b in enumerate(self.ram):
-            self.interface.setRAM(i, b)
+        self.interface.restoreState(self.state)
     
     def find_children(self):
         actions = self.interface.getMinimalActionSet()
@@ -84,10 +83,11 @@ class ALENode:
         os.system(f"rm -rf {png_dir}/*")
 
     def __hash__(self):
+        """TODO: check how to implement this given we use state now"""
         return hash(self.ram.tobytes())
     
     def __eq__(self, other):
-        return np.array_equal(self.ram, other.ram)
+        return self.state == other.state
 
     def __repr__(self):
         return f"{self.__class__.__name__}<{self._evaluation=}, {self.action=}>"
@@ -116,8 +116,8 @@ if __name__ == "__main__":
 
     mcts = MCTS(ALENode.root(), structure="tree", iter_stop="cpu_time")
 
-    for i in tqdm(range(args.turn_limit)):
+    for i in (bar := tqdm(range(args.turn_limit))):
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
+        bar.set_description(f"node.evaluation: {node.evaluation()}", refresh=True)
     node.make_video(args.png_dir, args.video_path)
-    print(node.evaluation())
 
