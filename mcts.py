@@ -81,7 +81,7 @@ class ALENode:
                 fname = f"frame_{i}.png"
                 self.interface.saveScreenPNG(f"{os.path.join(png_dir, fname)}")
 
-            os.system(f"ffmpeg -framerate 30 -start_number 0 -i {png_dir}/frame_%d.png -pix_fmt yuv420p {video_path}")
+            os.system(f"ffmpeg -framerate 55 -start_number 0 -i {png_dir}/frame_%d.png -pix_fmt yuv420p {video_path}")
 
     def __hash__(self):
         """TODO: check how to implement this given we use state now"""
