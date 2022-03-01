@@ -104,6 +104,7 @@ if __name__ == "__main__":
         ("--turn_limit", {"type": int, "required": True}),
         ("--png_dir", {"type": str, "required": True}),
         ("--video_path", {"type": str, "required": True}),
+        ("--structure", {"type": str, "required": True}),
     ]
 
 
@@ -114,7 +115,7 @@ if __name__ == "__main__":
 
     ALENode.setup_interface(args.rom_path, args.frame_skip)
 
-    mcts = MCTS(ALENode.root(), structure="tree", iter_stop="cpu_time")
+    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time")
 
     for i in (bar := tqdm(range(args.turn_limit))):
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
