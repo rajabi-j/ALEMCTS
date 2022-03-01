@@ -6,6 +6,7 @@ import numpy as np
 import os
 import os.path
 import random
+import tempfile
 
 class ALENode:
     __slots__ = ("state", "parent", "_evaluation", "action", "_is_terminal")
@@ -70,17 +71,17 @@ class ALENode:
         
         return list(reversed(history))
 
-    def make_video(self, png_dir, video_path):
+    def make_video(self, video_path):
         history = self.get_history()
 
-        for i, n in enumerate(history[:-1]):
-            n.sync()
-            self.interface.act(history[i+1].action)
-            fname = f"frame_{i}.png"
-            self.interface.saveScreenPNG(f"{os.path.join(png_dir, fname)}")
+        with tempfile.TemporaryDirectory() as png_dir:
+            for i, n in enumerate(history[:-1]):
+                n.sync()
+                self.interface.act(history[i+1].action)
+                fname = f"frame_{i}.png"
+                self.interface.saveScreenPNG(f"{os.path.join(png_dir, fname)}")
 
-        os.system(f"ffmpeg -framerate 30 -start_number 0 -i {png_dir}/frame_%d.png -pix_fmt yuv420p {video_path}")
-        os.system(f"rm -rf {png_dir}/*")
+            os.system(f"ffmpeg -framerate 55 -start_number 0 -i {png_dir}/frame_%d.png -pix_fmt yuv420p {video_path}")
 
     def __hash__(self):
         """TODO: check how to implement this given we use state now"""
@@ -102,7 +103,6 @@ if __name__ == "__main__":
         ("--rollout_depth", {"type": int, "required": True}),
         ("--frame_skip", {"type": int, "required": True}),
         ("--turn_limit", {"type": int, "required": True}),
-        ("--png_dir", {"type": str, "required": True}),
         ("--video_path", {"type": str, "required": True}),
         ("--structure", {"type": str, "required": True}),
     ]
@@ -120,5 +120,5 @@ if __name__ == "__main__":
     for i in (bar := tqdm(range(args.turn_limit))):
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
         bar.set_description(f"node.evaluation: {node.evaluation()}", refresh=True)
-    node.make_video(args.png_dir, args.video_path)
+    node.make_video(args.video_path)
 
