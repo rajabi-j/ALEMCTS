@@ -19,8 +19,10 @@ class ALENode:
 
 
     @classmethod
-    def setup_interface(cls, rom_path, frame_skip):
+    def setup_interface(cls, rom_path, frame_skip, random_seed=None):
         interface = ALEInterface()
+        if random_seed is not None:
+            interface.setInt("random_seed", random_seed)
         interface.setInt("frame_skip", frame_skip)
         interface.setFloat("repeat_action_probability", 0)
         interface.loadROM(rom_path)
@@ -105,6 +107,7 @@ if __name__ == "__main__":
         ("--turn_limit", {"type": int, "required": True}),
         ("--video_path", {"type": str, "required": True}),
         ("--structure", {"type": str, "required": True}),
+        ("--random_seed", {"type": int, "default": None}),
     ]
 
 
@@ -113,12 +116,14 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    ALENode.setup_interface(args.rom_path, args.frame_skip)
+    ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed)
 
     mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time")
 
     for i in (bar := tqdm(range(args.turn_limit))):
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
         bar.set_description(f"node.evaluation: {node.evaluation()}", refresh=True)
+        if node.is_terminal():
+            break
     node.make_video(args.video_path)
 
