@@ -108,6 +108,7 @@ if __name__ == "__main__":
         ("--video_path", {"type": str, "required": True}),
         ("--structure", {"type": str, "required": True}),
         ("--random_seed", {"type": int, "default": None}),
+        ("--no_progress_bar", {"default": False, "action": "store_true"}),
     ]
 
 
@@ -120,9 +121,11 @@ if __name__ == "__main__":
 
     mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time")
 
-    for i in (bar := tqdm(range(args.turn_limit))):
+    turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
+    for i in turns:
         node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
-        bar.set_description(f"node.evaluation: {node.evaluation()}", refresh=True)
+        if not args.no_progress_bar:
+            turns.set_description(f"node.evaluation: {node.evaluation()}", refresh=True)
         if node.is_terminal():
             break
     node.make_video(args.video_path)
