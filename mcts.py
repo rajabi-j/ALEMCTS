@@ -9,12 +9,12 @@ import random
 import tempfile
 
 class ALENode:
-    __slots__ = ("state", "parent", "_evaluation", "action", "_is_terminal")
+    __slots__ = ("state", "parent", "_evaluation", "action_id", "_is_terminal")
     def __init__(self, state, parent, score, action, is_terminal):
         self.state = state
         self.parent = parent
         self._evaluation = score
-        self.action = action
+        self.action_id = action
         self._is_terminal = is_terminal
 
 
@@ -60,7 +60,7 @@ class ALENode:
     def evaluation(self):
         return self._evaluation
 
-    def random_child(self):
+    def default_policy(self):
         action = random.choice(self.interface.getMinimalActionSet())
         return ALENode.from_parent(self, int(action))
 
@@ -79,7 +79,7 @@ class ALENode:
         with tempfile.TemporaryDirectory() as png_dir:
             for i, n in enumerate(history[:-1]):
                 n.sync()
-                self.interface.act(history[i+1].action)
+                self.interface.act(history[i+1].action_id)
                 fname = f"frame_{i}.png"
                 self.interface.saveScreenPNG(f"{os.path.join(png_dir, fname)}")
 
@@ -93,7 +93,7 @@ class ALENode:
         return self.state == other.state
 
     def __repr__(self):
-        return f"{self.__class__.__name__}<{self._evaluation=}, {self.action=}>"
+        return f"{self.__class__.__name__}<{self._evaluation=}, {self.action_id=}>"
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Run MCTS on ALE")
@@ -107,6 +107,7 @@ if __name__ == "__main__":
         ("--turn_limit", {"type": int, "required": True}),
         ("--video_path", {"type": str, "required": True}),
         ("--structure", {"type": str, "required": True}),
+        ("--randomize_ties", {"type": bool, "default": True}),
         ("--random_seed", {"type": int, "default": None}),
         ("--no_progress_bar", {"default": False, "action": "store_true"}),
     ]
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 
     turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
     for i in turns:
-        node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time)
+        node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time, exploration_weight=args.exploration_weight)
         if not args.no_progress_bar:
             turns.set_description(f"node.evaluation: {node.evaluation()}", refresh=True)
         if node.is_terminal():
