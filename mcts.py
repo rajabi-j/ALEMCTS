@@ -10,11 +10,11 @@ import tempfile
 
 class ALENode:
     __slots__ = ("state", "parent", "_evaluation", "action_id", "_is_terminal")
-    def __init__(self, state, parent, score, action, is_terminal):
+    def __init__(self, state, parent, score, action_id, is_terminal):
         self.state = state
         self.parent = parent
         self._evaluation = score
-        self.action_id = action
+        self.action_id = action_id
         self._is_terminal = is_terminal
 
 
@@ -27,6 +27,10 @@ class ALENode:
         interface.setFloat("repeat_action_probability", 0)
         interface.loadROM(rom_path)
         cls.interface = interface
+        cls.ale_action_set = interface.getMinimalActionSet()
+        cls.action_space_size = len(cls.ale_action_set)
+        cls.action_set = [i for i in range(len(cls.ale_action_set))]
+
 
     @classmethod
     def root(cls):
@@ -38,31 +42,29 @@ class ALENode:
         return cls(state, parent, score, action, is_terminal)
 
     @classmethod 
-    def from_parent(cls, parent, action):
+    def from_parent(cls, parent, action_id):
         parent.sync()
-        inc_reward = cls.interface.act(action)
+        inc_reward = cls.interface.act(cls.action_set[action_id])
         new_state = cls.interface.cloneState()
         is_terminal = cls.interface.game_over()
 
-        return cls(new_state, parent, parent._evaluation + inc_reward, action, is_terminal)
+        return cls(new_state, parent, parent._evaluation + inc_reward, action_id, is_terminal)
 
     def sync(self):
         self.interface.restoreState(self.state)
-    
-    def find_children(self):
-        actions = self.interface.getMinimalActionSet()
 
-        return [ALENode.from_parent(self, int(a)) for a in actions]
+    def apply_action(self, action_id):
+        return ALENode.from_parent(self, action_id)
+
+    def get_legal_actions(self):
+        return self.action_set
+
 
     def is_terminal(self):
         return self._is_terminal
 
     def evaluation(self):
         return self._evaluation
-
-    def default_policy(self):
-        action = random.choice(self.interface.getMinimalActionSet())
-        return ALENode.from_parent(self, int(action))
 
     def get_history(self):
         history = []
@@ -120,7 +122,7 @@ if __name__ == "__main__":
 
     ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed)
 
-    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time")
+    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time", action_space_size=ALENode.action_space_size, constant_action_space=True, randomize_ties=args.randomize_ties)
 
     turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
     for i in turns:
