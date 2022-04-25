@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed)
 
-    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time", action_space_size=ALENode.action_space_size, constant_action_space=True, randomize_ties=True if args.tiebreak=="random" else false)
+    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time", action_space_size=ALENode.action_space_size, constant_action_space=True, randomize_ties=True if args.tiebreak=="random" else False)
 
     turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
     for i in turns:
