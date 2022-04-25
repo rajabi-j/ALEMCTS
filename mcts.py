@@ -109,7 +109,7 @@ if __name__ == "__main__":
         ("--turn_limit", {"type": int, "required": True}),
         ("--video_path", {"type": str, "required": True}),
         ("--structure", {"type": str, "required": True}),
-        ("--randomize_ties", {"type": bool, "default": True}),
+        ("--tiebreak", {"type": str, "default": "random", "choices": ["first", "random"]}),
         ("--random_seed", {"type": int, "default": None}),
         ("--no_progress_bar", {"default": False, "action": "store_true"}),
     ]
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed)
 
-    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time", action_space_size=ALENode.action_space_size, constant_action_space=True, randomize_ties=args.randomize_ties)
+    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time", action_space_size=ALENode.action_space_size, constant_action_space=True, randomize_ties=True if args.tiebreak=="random" else false)
 
     turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
     for i in turns:
