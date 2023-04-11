@@ -122,14 +122,16 @@ if __name__ == "__main__":
 
     ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed)
 
-    mcts = MCTS(ALENode.root(), structure=args.structure, iter_stop="cpu_time", action_space_size=ALENode.action_space_size, constant_action_space=True, randomize_ties=True if args.tiebreak=="random" else False)
+    mcts = MCTS(ALENode.root(), structure=args.structure, max_action_value=ALENode.action_space_size-1, constant_action_space=True, randomize_ties=True if args.tiebreak=="random" else False)
 
     turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
     for i in turns:
-        node = mcts.move(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time, exploration_weight=args.exploration_weight)
+        node, _, _ = mcts.search_using_cpu_time(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time, exploration_weight=args.exploration_weight)
+        mcts.choose_best_node()
+
         if not args.no_progress_bar:
-            turns.set_description(f"node.evaluation: {node.evaluation()}", refresh=True)
-        if node.is_terminal():
+            turns.set_description(f"node.evaluation: {node.state.evaluation()}", refresh=True)
+        if node.state.is_terminal():
             break
-    node.make_video(args.video_path)
+    node.state.make_video(args.video_path)
 
