@@ -7,6 +7,7 @@ import os
 import os.path
 import random
 import tempfile
+import csv
 
 class ALENode:
     __slots__ = ("state", "parent", "_evaluation", "action_id", "_is_terminal")
@@ -87,6 +88,8 @@ class ALENode:
 
             os.system(f"ffmpeg -framerate 55 -start_number 0 -i {png_dir}/frame_%d.png -pix_fmt yuv420p {video_path}")
 
+    
+
     def __hash__(self):
         """TODO: check how to implement this given we use state now"""
         return hash(self.ram.tobytes())
@@ -96,29 +99,39 @@ class ALENode:
 
     def __repr__(self):
         return f"{self.__class__.__name__}<{self._evaluation=}, {self.action_id=}>"
-
-if __name__ == "__main__":
-    parser = ArgumentParser(description="Run MCTS on ALE")
-
-    args = [
-        ("rom_path", {"type": str}),
-        ("--exploration_weight", {"type": float, "required": True}),
-        ("--cpu_time", {"type": float, "required": True}),
-        ("--rollout_depth", {"type": int, "required": True}),
-        ("--frame_skip", {"type": int, "required": True}),
-        ("--turn_limit", {"type": int, "required": True}),
-        ("--video_path", {"type": str, "required": True}),
-        ("--structure", {"type": str, "required": True}),
-        ("--tiebreak", {"type": str, "default": "random", "choices": ["first", "random"]}),
-        ("--random_seed", {"type": int, "default": None}),
-        ("--no_progress_bar", {"default": False, "action": "store_true"}),
-    ]
-
-
-    for name, opts in args:
-        parser.add_argument(name, **opts)
     
-    args = parser.parse_args()
+class Namespace:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+def save_to_csv(data, csv_file_path):
+    """
+    Save data to a CSV file.
+
+    Args:
+        data (list of lists): The data to be saved to the CSV file.
+        csv_file_path (str): The path to the CSV file where data will be saved.
+    """
+    try:
+        # Open the CSV file in write mode and specify the CSV writer
+        with open(csv_file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+
+            # Write each row from the data list to the CSV file
+            writer.writerow(data)
+
+        print(f'Data has been saved to CSV file "{csv_file_path}" successfully.')
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+def mcts_run(args):
+
+    print("Running test with the following parameters:")
+    print(f"\tCpu_time: {args.cpu_time}")
+    print(f"\tRollout_depth: {args.rollout_depth}")
+    print(f"\tFrame_skip: {args.frame_skip}")
+    print(f"\tTurn_limit: {args.turn_limit} \n")
 
     ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed)
 
@@ -133,5 +146,47 @@ if __name__ == "__main__":
             turns.set_description(f"node.evaluation: {node.state.evaluation()}", refresh=True)
         if node.state.is_terminal():
             break
+
     node.state.make_video(args.video_path)
 
+    return node.state.evaluation()
+
+    
+
+if __name__ == "__main__":
+
+    test_time = 0.1
+    test_limit = 3000
+    test_skip = 5
+    test_seed = 20230921
+
+    min_depth = 100
+    max_depth = 3000
+    depth_step = 100
+    
+    score_history = []
+
+    for test_depth in range(min_depth, max_depth, depth_step):
+
+        test_path = video_path = 'videos/' + 'boxing' + '_depth' + str(test_depth). + '_limit' + str(test_limit) \
+          + '_time' + str(test_time) + '_skip' + str(test_skip) + '.mp4'
+        
+        args = Namespace(
+          rom_path = 'roms/boxing.bin',
+          exploration_weight = 1.0,
+          cpu_time = test_time,
+          rollout_depth = test_depth,
+          frame_skip = test_skip,
+          turn_limit = test_limit,
+          video_path = test_path,
+          structure = 'tree',
+          tiebreak = 'random',
+          random_seed = test_seed,
+          no_progress_bar = False
+        )
+
+        test_score = mcts_run(args)
+  
+        score_history.append(test_score)
+
+    save_to_csv(score_history, 'result.csv')
