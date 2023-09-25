@@ -8,6 +8,7 @@ import os.path
 import random
 import tempfile
 import csv
+import sys
 
 class ALENode:
     __slots__ = ("state", "parent", "_evaluation", "action_id", "_is_terminal")
@@ -114,7 +115,7 @@ def save_to_csv(data, csv_file_path):
     """
     try:
         # Open the CSV file in write mode and specify the CSV writer
-        with open(csv_file_path, mode='w', newline='') as file:
+        with open(csv_file_path, mode='a', newline='') as file:
             writer = csv.writer(file)
 
             # Write each row from the data list to the CSV file
@@ -156,23 +157,23 @@ def mcts_run(args):
 if __name__ == "__main__":
 
     test_time = 0.1
-    test_limit = 3000
+    test_limit = 300
     test_skip = 5
     test_seed = 20230921
 
     min_depth = 100
-    max_depth = 3000
+    max_depth = 300
     depth_step = 100
-    
-    score_history = []
 
     for test_depth in range(min_depth, max_depth, depth_step):
 
-        test_path = video_path = 'videos/' + 'boxing' + '_depth' + str(test_depth). + '_limit' + str(test_limit) \
+        test_path = video_path = 'videos/' + 'boxing' + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
           + '_time' + str(test_time) + '_skip' + str(test_skip) + '.mp4'
         
+        rom_name = 'boxing'
+
         args = Namespace(
-          rom_path = 'roms/boxing.bin',
+          rom_path = 'roms/' + rom_name + '.bin',
           exploration_weight = 1.0,
           cpu_time = test_time,
           rollout_depth = test_depth,
@@ -186,7 +187,8 @@ if __name__ == "__main__":
         )
 
         test_score = mcts_run(args)
-  
-        score_history.append(test_score)
 
-    save_to_csv(score_history, 'result.csv')
+        test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, args.video_path]
+
+        save_to_csv(test_specs, 'result.csv')
+
