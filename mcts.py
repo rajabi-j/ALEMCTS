@@ -156,22 +156,31 @@ def mcts_run(args):
 
 if __name__ == "__main__":
 
-    test_time = 0.1
-    test_limit = 300
+    test_time = 1
+    test_limit = 3000
     test_skip = 5
     test_seed = 20230921
 
     min_depth = 100
-    max_depth = 300
+    max_depth = 3000
     depth_step = 100
+
+    rom_name = 'boxing'
+
+    result_path = 'videos/' + rom_name + '_limit' + str(test_limit).zfill(3) + '_time' + str(test_time) \
+      + '_skip' + str(test_skip) + '.csv'
+    
+    test_specs = ['rom_name', 'rollout_depth', 'turn_limit', 'cpu_time', 'frame_skip', 'test_score', 'video_path']
+
+    save_to_csv(test_specs, result_path)
 
     for test_depth in range(min_depth, max_depth, depth_step):
 
-        test_path = video_path = 'videos/' + 'boxing' + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
+        
+
+        test_path = 'videos/' + rom_name + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
           + '_time' + str(test_time) + '_skip' + str(test_skip) + '.mp4'
         
-        rom_name = 'boxing'
-
         args = Namespace(
           rom_path = 'roms/' + rom_name + '.bin',
           exploration_weight = 1.0,
@@ -190,5 +199,5 @@ if __name__ == "__main__":
 
         test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, args.video_path]
 
-        save_to_csv(test_specs, 'result.csv')
+        save_to_csv(test_specs, result_path)
 
