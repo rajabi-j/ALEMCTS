@@ -155,49 +155,52 @@ def mcts_run(args):
     
 
 if __name__ == "__main__":
-
-    test_time = 1
-    test_limit = 3000
+    
+    test_limit = 200
     test_skip = 5
     test_seed = 20230921
 
-    min_depth = 100
-    max_depth = 3000
-    depth_step = 100
+
+    min_cpu_time = 0.2
+    max_cpu_time = 1
+    cpu_time_step = 0.2
+    min_depth = 1
+    max_depth = 20
+    depth_step = 1
 
     rom_name = 'boxing'
 
-    result_path = 'videos/' + rom_name + '_limit' + str(test_limit).zfill(3) + '_time' + str(test_time) \
-      + '_skip' + str(test_skip) + '.csv'
+    result_path = 'videos/' + rom_name + '_limit' + str(test_limit).zfill(3) + '_skip' + str(test_skip) + '.csv'
+      
     
     test_specs = ['rom_name', 'rollout_depth', 'turn_limit', 'cpu_time', 'frame_skip', 'test_score', 'video_path']
 
     save_to_csv(test_specs, result_path)
 
-    for test_depth in range(min_depth, max_depth, depth_step):
+    for test_cpu_time in range(min_cpu_time, max_cpu_time + 1, cpu_time_step):
 
-        
+        for test_depth in range(min_depth, max_depth + 1, depth_step):
 
-        test_path = 'videos/' + rom_name + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
-          + '_time' + str(test_time) + '_skip' + str(test_skip) + '.mp4'
-        
-        args = Namespace(
-          rom_path = 'roms/' + rom_name + '.bin',
-          exploration_weight = 1.0,
-          cpu_time = test_time,
-          rollout_depth = test_depth,
-          frame_skip = test_skip,
-          turn_limit = test_limit,
-          video_path = test_path,
-          structure = 'tree',
-          tiebreak = 'random',
-          random_seed = test_seed,
-          no_progress_bar = False
-        )
+            test_path = 'videos/' + rom_name + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
+            + '_time' + str(test_cpu_time) + '_skip' + str(test_skip) + '.mp4'
+            
+            args = Namespace(
+            rom_path = 'roms/' + rom_name + '.bin',
+            exploration_weight = 1.0,
+            cpu_time = test_cpu_time,
+            rollout_depth = test_depth,
+            frame_skip = test_skip,
+            turn_limit = test_limit,
+            video_path = test_path,
+            structure = 'tree',
+            tiebreak = 'random',
+            random_seed = test_seed,
+            no_progress_bar = False
+            )
 
-        test_score = mcts_run(args)
+            test_score = mcts_run(args)
 
-        test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, args.video_path]
+            test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, args.video_path]
 
-        save_to_csv(test_specs, result_path)
+            save_to_csv(test_specs, result_path)
 
