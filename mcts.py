@@ -177,9 +177,9 @@ if __name__ == "__main__":
 
     save_to_csv(test_specs, result_path)
 
-    for test_cpu_time in range(min_cpu_time, max_cpu_time + 1, cpu_time_step):
+    for test_cpu_time in range(min_cpu_time, max_cpu_time + cpu_time_step, cpu_time_step):
 
-        for test_depth in range(min_depth, max_depth + 1, depth_step):
+        for test_depth in range(min_depth, max_depth + depth_step, depth_step):
 
             test_path = 'videos/' + rom_name + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
             + '_time' + str(test_cpu_time) + '_skip' + str(test_skip) + '.mp4'
