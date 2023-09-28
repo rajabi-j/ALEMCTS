@@ -177,7 +177,7 @@ if __name__ == "__main__":
 
     save_to_csv(test_specs, result_path)
 
-    for test_cpu_time in range(min_cpu_time, max_cpu_time + cpu_time_step, cpu_time_step):
+    for test_cpu_time in np.arange(min_cpu_time, max_cpu_time + cpu_time_step, cpu_time_step):
 
         for test_depth in range(min_depth, max_depth + depth_step, depth_step):
 
