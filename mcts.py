@@ -156,15 +156,15 @@ def mcts_run(args):
 
 if __name__ == "__main__":
     
-    test_limit = 100
+    test_limit = 3000
     test_skip = 5
     test_seed = 20230921
 
-    min_depth = 20
-    max_depth = 20
-    depth_step = 1
+    min_depth = 100
+    max_depth = 2000
+    depth_step = 100
 
-    cpu_times = [0.1]
+    cpu_times = [0.1, 1.0, 10.0]
 
     roms = ['haunted_house', 'solaris', 'double_dunk', 'zaxxon', 'boxing', 'assault', 'video_pinball', 'yars_revenge', \
             'road_runner', 'laser_gates', 'gravitar', 'darkchambers', 'sir_lancelot', 'trondead', 'space_war', 'enduro', \
@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
             for test_depth in range(min_depth, max_depth + depth_step, depth_step):
                 
-                video_file = rom_name + '/' + rom_name + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
+                video_file = rom_name + '/' + rom_name + '_depth' + str(test_depth).zfill(4) + '_limit' + str(test_limit).zfill(4) \
                 + '_time' + str(test_cpu_time) + '_skip' + str(test_skip) + '.mp4'
 
                 test_path = 'mcts_test/' +  video_file
