@@ -11,17 +11,19 @@ import csv
 import sys
 
 class ALENode:
-    __slots__ = ("state", "parent", "_evaluation", "action_id", "_is_terminal")
-    def __init__(self, state, parent, score, action_id, is_terminal):
+    __slots__ = ("state", "parent", "_evaluation", "action_id", "_is_terminal", "action_weights", "opp_actions")
+    def __init__(self, state, parent, score, action_id, is_terminal, action_weights, opp_actions):
         self.state = state
         self.parent = parent
         self._evaluation = score
         self.action_id = action_id
         self._is_terminal = is_terminal
+        self.action_weights = action_weights
+        self.opp_actions = opp_actions
 
 
     @classmethod
-    def setup_interface(cls, rom_path, frame_skip, random_seed=None):
+    def setup_interface(cls, rom_path, frame_skip, action_weights, opp_actions, random_seed=None):
         interface = ALEInterface()
         if random_seed is not None:
             interface.setInt("random_seed", random_seed)
@@ -32,8 +34,10 @@ class ALENode:
         cls.ale_action_set = interface.getMinimalActionSet()
         cls.action_space_size = len(cls.ale_action_set)
         cls.action_set = [i for i in range(len(cls.ale_action_set))]
-
-
+        cls.action_weights = action_weights
+        cls.opp_actions = opp_actions
+        print(cls.action_set)
+        
     @classmethod
     def root(cls):
         state = cls.interface.cloneState()
@@ -41,16 +45,23 @@ class ALENode:
         score = 0
         action = 0 # attribute start of game to NOOP
         is_terminal = cls.interface.game_over()
-        return cls(state, parent, score, action, is_terminal)
+        action_weights = cls.action_weights
+        opp_actions = cls.opp_actions
+
+        return cls(state, parent, score, action, is_terminal, action_weights, opp_actions)
 
     @classmethod 
     def from_parent(cls, parent, action_id):
         parent.sync()
-        inc_reward = cls.interface.act(cls.action_set[action_id])
+        ext_reward = cls.interface.act(cls.action_set[action_id])
+        int_reward = cls.action_weights[action_id]
+        inc_reward = ext_reward
         new_state = cls.interface.cloneState()
         is_terminal = cls.interface.game_over()
+        action_weights = cls.action_weights
+        opp_actions = cls.opp_actions
 
-        return cls(new_state, parent, parent._evaluation + inc_reward, action_id, is_terminal)
+        return cls(new_state, parent, parent._evaluation + inc_reward, action_id, is_terminal, action_weights, opp_actions)
 
     def sync(self):
         self.interface.restoreState(self.state)
@@ -134,10 +145,9 @@ def mcts_run(args):
     print(f"\tFrame_skip: {args.frame_skip}")
     print(f"\tTurn_limit: {args.turn_limit} \n")
 
-    ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed)
+    ALENode.setup_interface(args.rom_path, args.frame_skip, args.random_seed, args.action_weights, args.opp_actions)
 
     mcts = MCTS(ALENode.root(), structure=args.structure, max_action_value=ALENode.action_space_size-1, constant_action_space=True, randomize_ties=True if args.tiebreak=="random" else False)
-
     turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
     for i in turns:
         node, _, _ = mcts.search_using_cpu_time(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time, exploration_weight=args.exploration_weight)
@@ -216,6 +226,8 @@ if __name__ == "__main__":
                 tiebreak = 'random',
                 random_seed = test_seed,
                 no_progress_bar = False
+                action_weights = []
+                opp_actions = []
                 )
 
                 test_score = mcts_run(args)
