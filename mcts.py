@@ -226,8 +226,8 @@ if __name__ == "__main__":
                 structure = 'tree',
                 tiebreak = 'random',
                 random_seed = test_seed,
-                no_progress_bar = False
-                action_weights = []
+                no_progress_bar = False,
+                action_weights = [],
                 opp_actions = []
                 )
 
