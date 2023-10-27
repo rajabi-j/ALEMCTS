@@ -37,7 +37,7 @@ class ALENode:
         cls.action_weights = action_weights
         cls.opp_actions = opp_actions
         print(cls.action_set)
-        
+
     @classmethod
     def root(cls):
         state = cls.interface.cloneState()
@@ -166,29 +166,30 @@ def mcts_run(args):
 
 if __name__ == "__main__":
     
-    test_limit = 3000
+    test_limit = 100
     test_skip = 5
     test_seed = 20230921
 
     min_depth = 100
-    max_depth = 2000
+    max_depth = 100
     depth_step = 100
 
-    cpu_times = [0.1, 1.0, 10.0]
+    cpu_times = [0.1]
 
-    roms = ['haunted_house', 'solaris', 'double_dunk', 'zaxxon', 'boxing', 'assault', 'video_pinball', 'yars_revenge', \
-            'road_runner', 'laser_gates', 'gravitar', 'darkchambers', 'sir_lancelot', 'trondead', 'space_war', 'enduro', \
-            'word_zapper', 'pitfall2', 'jamesbond', 'asteroids', 'robotank', 'private_eye', 'tennis', 'centipede', \
-            'earthworld', 'bank_heist', 'basic_math', 'air_raid', 'backgammon', 'adventure', 'crossbow', 'entombed', \
-            'skiing', 'berzerk', 'phoenix', 'asterix', 'montezuma_revenge', 'donkey_kong', 'carnival', 'pitfall', \
-            'miniature_golf', 'journey_escape', 'human_cannonball', 'elevator_action', 'breakout', 'demon_attack', \
-            'alien', 'tutankham', 'fishing_derby', 'keystone_kapers', 'superman', 'atlantis2', 'atlantis', 'lost_luggage', \
-            'up_n_down', 'riverraid', 'chopper_command', 'frostbite', 'mario_bros', 'ice_hockey', 'galaxian', 'venture', \
-            'krull', 'videocube', 'hero', 'battle_zone', 'surround', 'seaquest', 'kaboom', 'hangman', 'othello', 'pacman', \
-            'space_invaders', 'flag_capture', 'tetris', 'defender', 'pong', 'videochess', 'time_pilot', 'et', \
-            'video_checkers', 'turmoil', 'bowling', 'wizard_of_wor', 'kangaroo', 'star_gunner', 'beam_rider', 'pooyan', \
-            'amidar', 'mr_do', 'ms_pacman', 'kung_fu_master', 'qbert', 'crazy_climber', 'name_this_game', 'frogger', \
-            'casino', 'blackjack', 'freeway', 'king_kong', 'koolaid', 'gopher', 'tic_tac_toe_3d']
+    roms = ['tetris']
+    # roms = ['haunted_house', 'solaris', 'double_dunk', 'zaxxon', 'boxing', 'assault', 'video_pinball', 'yars_revenge', \
+    #         'road_runner', 'laser_gates', 'gravitar', 'darkchambers', 'sir_lancelot', 'trondead', 'space_war', 'enduro', \
+    #         'word_zapper', 'pitfall2', 'jamesbond', 'asteroids', 'robotank', 'private_eye', 'tennis', 'centipede', \
+    #         'earthworld', 'bank_heist', 'basic_math', 'air_raid', 'backgammon', 'adventure', 'crossbow', 'entombed', \
+    #         'skiing', 'berzerk', 'phoenix', 'asterix', 'montezuma_revenge', 'donkey_kong', 'carnival', 'pitfall', \
+    #         'miniature_golf', 'journey_escape', 'human_cannonball', 'elevator_action', 'breakout', 'demon_attack', \
+    #         'alien', 'tutankham', 'fishing_derby', 'keystone_kapers', 'superman', 'atlantis2', 'atlantis', 'lost_luggage', \
+    #         'up_n_down', 'riverraid', 'chopper_command', 'frostbite', 'mario_bros', 'ice_hockey', 'galaxian', 'venture', \
+    #         'krull', 'videocube', 'hero', 'battle_zone', 'surround', 'seaquest', 'kaboom', 'hangman', 'othello', 'pacman', \
+    #         'space_invaders', 'flag_capture', 'tetris', 'defender', 'pong', 'videochess', 'time_pilot', 'et', \
+    #         'video_checkers', 'turmoil', 'bowling', 'wizard_of_wor', 'kangaroo', 'star_gunner', 'beam_rider', 'pooyan', \
+    #         'amidar', 'mr_do', 'ms_pacman', 'kung_fu_master', 'qbert', 'crazy_climber', 'name_this_game', 'frogger', \
+    #         'casino', 'blackjack', 'freeway', 'king_kong', 'koolaid', 'gopher', 'tic_tac_toe_3d']
 
     os.mkdir('mcts_test')
     
