@@ -160,17 +160,17 @@ def mcts_run(args):
     
 if __name__ == "__main__":
     
-    test_limit = 100
+    test_limit = 3000
     test_skip = 5
     test_seed = 20230921
 
     min_depth = 100
-    max_depth = 200
+    max_depth = 3000
     depth_step = 100
 
-    cpu_times = [0.1]
+    cpu_times = [0.1, 1.0, 10.0]
 
-    roms = ['solaris', 'asteroids']#, 'boxing', 'asteroids', 'air_raid','pitfall', 'ice_hockey', 'tetris', 'defender', 'pong', 'skiing', 'breakout']
+    roms = ['solaris', 'boxing', 'asteroids', 'riverraid','basic_math', 'ice_hockey', 'tetris', 'defender', 'pong', 'skiing', 'breakout']
     # roms = ['haunted_house', 'solaris', 'double_dunk', 'zaxxon', 'boxing', 'assault', 'video_pinball', 'yars_revenge', \
     #         'road_runner', 'laser_gates', 'gravitar', 'darkchambers', 'sir_lancelot', 'trondead', 'space_war', 'enduro', \
     #         'word_zapper', 'pitfall2', 'jamesbond', 'asteroids', 'robotank', 'private_eye', 'tennis', 'centipede', \
@@ -231,6 +231,6 @@ if __name__ == "__main__":
 
                 save_to_csv(test_specs, result_file)
 
-    zip_folder("mcts_test", "test_output.zip" )
+    zip_folder("mcts_test", "mcts_output.zip" )
 
 
