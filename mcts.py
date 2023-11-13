@@ -9,6 +9,7 @@ import random
 import tempfile
 import csv
 import sys
+import zipfile
 
 class ALENode:
     __slots__ = ("state", "parent", "_evaluation", "action_id", "_is_terminal")
@@ -118,6 +119,17 @@ def save_to_csv(data, csv_file_path):
     except Exception as e:
         print(f'Error: {e}')
 
+def zip_folder(folder_path, output_filename):
+    # Create a ZipFile object in write mode
+    with zipfile.ZipFile(output_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        # Walk through the folder's directory
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                # Write each file to the zip file
+                zipf.write(os.path.join(root, file),
+                        os.path.relpath(os.path.join(root, file),
+                                        os.path.join(folder_path, '..')))
+
 
 def mcts_run(args):
 
@@ -153,12 +165,12 @@ if __name__ == "__main__":
     test_seed = 20230921
 
     min_depth = 100
-    max_depth = 100
+    max_depth = 200
     depth_step = 100
 
     cpu_times = [0.1]
 
-    roms = ['solaris']#, 'boxing', 'asteroids', 'air_raid','pitfall', 'ice_hockey', 'tetris', 'defender', 'pong', 'skiing', 'breakout']
+    roms = ['solaris', 'asteroids']#, 'boxing', 'asteroids', 'air_raid','pitfall', 'ice_hockey', 'tetris', 'defender', 'pong', 'skiing', 'breakout']
     # roms = ['haunted_house', 'solaris', 'double_dunk', 'zaxxon', 'boxing', 'assault', 'video_pinball', 'yars_revenge', \
     #         'road_runner', 'laser_gates', 'gravitar', 'darkchambers', 'sir_lancelot', 'trondead', 'space_war', 'enduro', \
     #         'word_zapper', 'pitfall2', 'jamesbond', 'asteroids', 'robotank', 'private_eye', 'tennis', 'centipede', \
@@ -218,4 +230,7 @@ if __name__ == "__main__":
                 test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, video_file]
 
                 save_to_csv(test_specs, result_file)
+
+    zip_folder("mcts_test", "test_output.zip" )
+
 
