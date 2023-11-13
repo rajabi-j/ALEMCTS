@@ -165,7 +165,7 @@ if __name__ == "__main__":
     test_seed = 20230921
 
     min_depth = 100
-    max_depth = 3000
+    max_depth = 2000
     depth_step = 100
 
     cpu_times = [0.1, 1.0, 10.0]
