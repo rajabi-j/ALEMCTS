@@ -46,7 +46,7 @@ class ALENode:
     @classmethod 
     def from_parent(cls, parent, action_id):
         parent.sync()
-        inc_reward = cls.interface.act(cls.action_set[action_id])
+        inc_reward = cls.interface.act(cls.ale_action_set[action_id])
         new_state = cls.interface.cloneState()
         is_terminal = cls.interface.game_over()
 
@@ -83,7 +83,7 @@ class ALENode:
         with tempfile.TemporaryDirectory() as png_dir:
             for i, n in enumerate(history[:-1]):
                 n.sync()
-                self.interface.act(history[i+1].action_id)
+                self.interface.act(self.ale_action_set[history[i+1].action_id])
                 fname = f"frame_{i}.png"
                 self.interface.saveScreenPNG(f"{os.path.join(png_dir, fname)}")
 
@@ -92,8 +92,7 @@ class ALENode:
     
 
     def __hash__(self):
-        """TODO: check how to implement this given we use state now"""
-        return hash(self.ram.tobytes())
+        return hash(self.interface.getRAM().tobytes())
     
     def __eq__(self, other):
         return self.state == other.state
@@ -106,13 +105,7 @@ class Namespace:
         self.__dict__.update(kwargs)
 
 def save_to_csv(data, csv_file_path):
-    """
-    Save data to a CSV file.
 
-    Args:
-        data (list of lists): The data to be saved to the CSV file.
-        csv_file_path (str): The path to the CSV file where data will be saved.
-    """
     try:
         # Open the CSV file in write mode and specify the CSV writer
         with open(csv_file_path, mode='a', newline='') as file:
@@ -153,54 +146,76 @@ def mcts_run(args):
     return node.state.evaluation()
 
     
-
 if __name__ == "__main__":
     
-    test_limit = 200
+    test_limit = 100
     test_skip = 5
     test_seed = 20230921
 
+    min_depth = 100
+    max_depth = 100
+    depth_step = 100
 
-    min_cpu_time = 0.2
-    max_cpu_time = 1
-    cpu_time_step = 0.2
-    min_depth = 1
-    max_depth = 20
-    depth_step = 1
+    cpu_times = [0.1]
 
-    rom_name = 'boxing'
+    roms = ['solaris']#, 'boxing', 'asteroids', 'air_raid','pitfall', 'ice_hockey', 'tetris', 'defender', 'pong', 'skiing', 'breakout']
+    # roms = ['haunted_house', 'solaris', 'double_dunk', 'zaxxon', 'boxing', 'assault', 'video_pinball', 'yars_revenge', \
+    #         'road_runner', 'laser_gates', 'gravitar', 'darkchambers', 'sir_lancelot', 'trondead', 'space_war', 'enduro', \
+    #         'word_zapper', 'pitfall2', 'jamesbond', 'asteroids', 'robotank', 'private_eye', 'tennis', 'centipede', \
+    #         'earthworld', 'bank_heist', 'basic_math', 'air_raid', 'backgammon', 'adventure', 'crossbow', 'entombed', \
+    #         'skiing', 'berzerk', 'phoenix', 'asterix', 'montezuma_revenge', 'donkey_kong', 'carnival', 'pitfall', \
+    #         'miniature_golf', 'journey_escape', 'human_cannonball', 'elevator_action', 'breakout', 'demon_attack', \
+    #         'alien', 'tutankham', 'fishing_derby', 'keystone_kapers', 'superman', 'atlantis2', 'atlantis', 'lost_luggage', \
+    #         'up_n_down', 'riverraid', 'chopper_command', 'frostbite', 'mario_bros', 'ice_hockey', 'galaxian', 'venture', \
+    #         'krull', 'videocube', 'hero', 'battle_zone', 'surround', 'seaquest', 'kaboom', 'hangman', 'othello', 'pacman', \
+    #         'space_invaders', 'flag_capture', 'tetris', 'defender', 'pong', 'videochess', 'time_pilot', 'et', \
+    #         'video_checkers', 'turmoil', 'bowling', 'wizard_of_wor', 'kangaroo', 'star_gunner', 'beam_rider', 'pooyan', \
+    #         'amidar', 'mr_do', 'ms_pacman', 'kung_fu_master', 'qbert', 'crazy_climber', 'name_this_game', 'frogger', \
+    #         'casino', 'blackjack', 'freeway', 'king_kong', 'koolaid', 'gopher', 'tic_tac_toe_3d']
 
-    result_path = 'videos/' + rom_name + '_limit' + str(test_limit).zfill(3) + '_skip' + str(test_skip) + '.csv'
-      
+    os.mkdir('mcts_test')
     
+    result_file = 'mcts_test/mcts_results.csv'
+              
     test_specs = ['rom_name', 'rollout_depth', 'turn_limit', 'cpu_time', 'frame_skip', 'test_score', 'video_path']
 
-    save_to_csv(test_specs, result_path)
+    save_to_csv(test_specs, result_file)
 
-    for test_cpu_time in np.arange(min_cpu_time, max_cpu_time + cpu_time_step, cpu_time_step):
+    
+    for rom_name in roms:
 
-        for test_depth in range(min_depth, max_depth + depth_step, depth_step):
+        video_path = 'mcts_test/' + rom_name
 
-            test_path = 'videos/' + rom_name + '_depth' + str(test_depth).zfill(3) + '_limit' + str(test_limit).zfill(3) \
-            + '_time' + str(test_cpu_time) + '_skip' + str(test_skip) + '.mp4'
-            
-            args = Namespace(
-            rom_path = 'roms/' + rom_name + '.bin',
-            exploration_weight = 1.0,
-            cpu_time = test_cpu_time,
-            rollout_depth = test_depth,
-            frame_skip = test_skip,
-            turn_limit = test_limit,
-            video_path = test_path,
-            structure = 'tree',
-            tiebreak = 'random',
-            random_seed = test_seed,
-            no_progress_bar = False
-            )
+        os.mkdir(video_path)
 
-            test_score = mcts_run(args)
+        for test_cpu_time in cpu_times:
 
-            test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, args.video_path]
+            for test_depth in range(min_depth, max_depth + depth_step, depth_step):
+                
+                video_file = rom_name + '/' + rom_name + '_depth' + str(test_depth).zfill(4) + '_limit' + str(test_limit).zfill(4) \
+                + '_time' + str(test_cpu_time) + '_skip' + str(test_skip) + '.mp4'
 
-            save_to_csv(test_specs, result_path)
+                test_path = 'mcts_test/' +  video_file
+                
+                args = Namespace(
+                rom_path = 'roms/' + rom_name + '.bin',
+                exploration_weight = 1.0,
+                cpu_time = test_cpu_time,
+                rollout_depth = test_depth,
+                frame_skip = test_skip,
+                turn_limit = test_limit,
+                video_path = test_path,
+                structure = 'tree',
+                tiebreak = 'random',
+                random_seed = test_seed,
+                no_progress_bar = False,
+                action_weights = [],
+                opp_actions = []
+                )
+
+                test_score = mcts_run(args)
+
+                test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, video_file]
+
+                save_to_csv(test_specs, result_file)
 
