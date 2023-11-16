@@ -134,7 +134,7 @@ def zip_folder(folder_path, output_filename):
 def mcts_run(args):
 
     print("Running test with the following parameters:")
-    print(f"\tCpu_time: {args.cpu_time}")
+    print(f"\tIterations {args.iters}")
     print(f"\tRollout_depth: {args.rollout_depth}")
     print(f"\tFrame_skip: {args.frame_skip}")
     print(f"\tTurn_limit: {args.turn_limit} \n")
@@ -145,7 +145,7 @@ def mcts_run(args):
 
     turns = range(args.turn_limit) if args.no_progress_bar else tqdm(range(args.turn_limit))
     for i in turns:
-        node, _, _ = mcts.search_using_cpu_time(rollout_depth=args.rollout_depth, cpu_time=args.cpu_time, exploration_weight=args.exploration_weight)
+        node, _, _ = mcts.search_using_iters(rollout_depth=args.rollout_depth, iters=args.iters, exploration_weight=args.exploration_weight)
         mcts.choose_best_node()
 
         if not args.no_progress_bar:
@@ -168,28 +168,15 @@ if __name__ == "__main__":
     max_depth = 2000
     depth_step = 100
 
-    cpu_times = [0.1, 1.0, 10.0]
+    iters = [10, 100]
 
     roms = ['solaris', 'boxing', 'asteroids', 'riverraid','basic_math', 'ice_hockey', 'tetris', 'defender', 'pong', 'skiing', 'breakout']
-    # roms = ['haunted_house', 'solaris', 'double_dunk', 'zaxxon', 'boxing', 'assault', 'video_pinball', 'yars_revenge', \
-    #         'road_runner', 'laser_gates', 'gravitar', 'darkchambers', 'sir_lancelot', 'trondead', 'space_war', 'enduro', \
-    #         'word_zapper', 'pitfall2', 'jamesbond', 'asteroids', 'robotank', 'private_eye', 'tennis', 'centipede', \
-    #         'earthworld', 'bank_heist', 'basic_math', 'air_raid', 'backgammon', 'adventure', 'crossbow', 'entombed', \
-    #         'skiing', 'berzerk', 'phoenix', 'asterix', 'montezuma_revenge', 'donkey_kong', 'carnival', 'pitfall', \
-    #         'miniature_golf', 'journey_escape', 'human_cannonball', 'elevator_action', 'breakout', 'demon_attack', \
-    #         'alien', 'tutankham', 'fishing_derby', 'keystone_kapers', 'superman', 'atlantis2', 'atlantis', 'lost_luggage', \
-    #         'up_n_down', 'riverraid', 'chopper_command', 'frostbite', 'mario_bros', 'ice_hockey', 'galaxian', 'venture', \
-    #         'krull', 'videocube', 'hero', 'battle_zone', 'surround', 'seaquest', 'kaboom', 'hangman', 'othello', 'pacman', \
-    #         'space_invaders', 'flag_capture', 'tetris', 'defender', 'pong', 'videochess', 'time_pilot', 'et', \
-    #         'video_checkers', 'turmoil', 'bowling', 'wizard_of_wor', 'kangaroo', 'star_gunner', 'beam_rider', 'pooyan', \
-    #         'amidar', 'mr_do', 'ms_pacman', 'kung_fu_master', 'qbert', 'crazy_climber', 'name_this_game', 'frogger', \
-    #         'casino', 'blackjack', 'freeway', 'king_kong', 'koolaid', 'gopher', 'tic_tac_toe_3d']
 
     os.mkdir('mcts_test')
     
     result_file = 'mcts_test/mcts_results.csv'
               
-    test_specs = ['rom_name', 'rollout_depth', 'turn_limit', 'cpu_time', 'frame_skip', 'test_score', 'video_path']
+    test_specs = ['rom_name', 'rollout_depth', 'turn_limit', 'iters', 'frame_skip', 'test_score', 'video_path']
 
     save_to_csv(test_specs, result_file)
 
@@ -200,19 +187,19 @@ if __name__ == "__main__":
 
         os.mkdir(video_path)
 
-        for test_cpu_time in cpu_times:
+        for iter in iters:
 
             for test_depth in range(min_depth, max_depth + depth_step, depth_step):
                 
                 video_file = rom_name + '/' + rom_name + '_depth' + str(test_depth).zfill(4) + '_limit' + str(test_limit).zfill(4) \
-                + '_time' + str(test_cpu_time) + '_skip' + str(test_skip) + '.mp4'
+                + '_iters' + str(iter) + '_skip' + str(test_skip) + '.mp4'
 
                 test_path = 'mcts_test/' +  video_file
                 
                 args = Namespace(
                 rom_path = 'roms/' + rom_name + '.bin',
                 exploration_weight = 1.0,
-                cpu_time = test_cpu_time,
+                iters = iter,
                 rollout_depth = test_depth,
                 frame_skip = test_skip,
                 turn_limit = test_limit,
@@ -227,7 +214,7 @@ if __name__ == "__main__":
 
                 test_score = mcts_run(args)
 
-                test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.cpu_time, args.frame_skip, test_score, video_file]
+                test_specs = [rom_name, args.rollout_depth, args.turn_limit, args.iters, args.frame_skip, test_score, video_file]
 
                 save_to_csv(test_specs, result_file)
 
